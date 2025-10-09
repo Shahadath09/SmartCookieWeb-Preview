@@ -1,11 +1,17 @@
-name: Find and Build APK
+name: Build Universal APK
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+  workflow_dispatch: # Allows manual triggering from the Actions tab
+
+env:
+  MAIN_PROJECT_MODULE: "app" # Default for most Android projects. Change if yours is different.
 
 jobs:
-  build:
+  build-universal-apk:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,26 +27,31 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Create local.properties
-      run: |
-        echo "sdk.dir=$ANDROID_HOME" > local.properties
-
     - name: Make gradlew executable
       run: chmod +x ./gradlew
 
-    - name: Build the project
-      run: ./gradlew assembleDebug --stacktrace
-
-    - name: SEARCH FOR APK FILES
+    - name: Build APK for ARMv7
       run: |
-        echo "=== LISTING ALL APK FILES ==="
-        find . -name "*.apk" -type f
-        echo "=== BUILD OUTPUTS STRUCTURE ==="
-        find . -path "*/build/outputs/*" -type f | head -20
+        ./gradlew ${{ env.MAIN_PROJECT_MODULE }}:assembleDebug -Ptarget-platform=android-arm
 
-    - name: Upload ANY APK found
+    - name: Build APK for ARM64
+      run: |
+        ./gradlew ${{ env.MAIN_PROJECT_MODULE }}:assembleDebug -Ptarget-platform=android-arm64
+
+    - name: Combine APKs into Universal APK
+      run: |
+        # This is a simplified step. You might need a custom script or tool here.
+        echo "This is where APKs for different architectures would be combined."
+        # For a real implementation, you might use `bundletool` to build a universal APK from an AAB.
+
+    - name: Find and List all APKs
+      run: |
+        echo "=== Listing all APK files ==="
+        find . -name "*.apk" -type f
+
+    - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: built-apk-file
-        path: "**/*.apk"
+        name: universal-apk
+        path: "**/build/outputs/apk/**/*.apk"
         if-no-files-found: error
