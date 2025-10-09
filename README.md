@@ -97,6 +97,6 @@ SUCH DAMAGES.`
 - **[Mozilla Public License Version 2.0](https://www.mozilla.org/en-US/MPL/2.0/)**
 
 
-Copyright 2022 © CookieJarApps.
+Copyright 2025 © CookieJarApps.
 
 ---
